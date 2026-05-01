@@ -8,6 +8,16 @@ Small local project for loading a small LLM checkpoint, chatting with it, and ev
 - GPTQ quantization was moved to Kaggle on `T4` GPU.
 - Quantization format: `NF4` (`QUANT_LIST_ID=4` in the GPTQ script/notebook).
 - Quantized checkpoint path: `checkpoints/tinyllama_gptq_nf4`.
+- Kaggle GPTQ run parameters:
+  - `MAX_BLOCKS = None`
+  - `DATASET = wikitext`
+  - `DATASET_CONFIG = wikitext-2-raw-v1`
+  - `CALIB_SPLIT = train`
+  - `CALIB_MAX_ROWS = 2000`
+  - `BLOCK_SIZE = 256`
+  - `BATCH_SIZE = 16`
+  - `SEED = 555`
+  - Scale search points: `10`
 - Quantized layers per decoder block:
   - `self_attn.q_proj`
   - `self_attn.k_proj`
