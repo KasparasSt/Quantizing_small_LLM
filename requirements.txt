@@ -2,3 +2,6 @@ torch
 transformers
 accelerate
 huggingface_hub
+
+datasets
+tqdm
