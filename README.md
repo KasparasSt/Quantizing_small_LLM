@@ -2,6 +2,33 @@
 
 Small local project for loading a small LLM checkpoint, chatting with it, and evaluating perplexity.
 
+## Current status
+
+- Local device constraints (GTX 1650 4GB VRAM) made full GPTQ runs unbearably  slow.
+- GPTQ quantization was moved to Kaggle on `T4` GPU.
+- Quantization format: `NF4` (`QUANT_LIST_ID=4` in the GPTQ script/notebook).
+- Quantized checkpoint path: `checkpoints/tinyllama_gptq_nf4`.
+- Kaggle GPTQ run parameters:
+  - `MAX_BLOCKS = None`
+  - `DATASET = wikitext`
+  - `DATASET_CONFIG = wikitext-2-raw-v1`
+  - `CALIB_SPLIT = train`
+  - `CALIB_MAX_ROWS = 2000`
+  - `BLOCK_SIZE = 256`
+  - `BATCH_SIZE = 16`
+  - `SEED = 555`
+  - Scale search points: `10`
+- Quantized layers per decoder block:
+  - `self_attn.q_proj`
+  - `self_attn.k_proj`
+  - `self_attn.v_proj`
+  - `self_attn.o_proj`
+  - `mlp.gate_proj`
+  - `mlp.up_proj`
+  - `mlp.down_proj`
+- Post-quantization perplexity (WikiText-2 test, same sliding-window settings): **9.4680**
+- For reference, unquantized PPL was: **8.8369**
+
 ## Current model
 
 - Model id: `TinyLlama/TinyLlama-1.1B-Chat-v1.0`
@@ -23,6 +50,7 @@ Small local project for loading a small LLM checkpoint, chatting with it, and ev
 - CPU: `AMD Ryzen 7 5800H`
 - RAM: `16GB DDR4 3200`
 - GPU used in this project: `NVIDIA GeForce GTX 1650 (4GB VRAM)`
+- Cloud device used for GPTQ: `Kaggle NVIDIA T4`
 
 Runtime implications for this setup:
 
@@ -101,9 +129,13 @@ Notes:
 
 ## Current reference result
 
+- Baseline model (`checkpoints/tinyllama_mod_v1`):
 - Dataset: `wikitext-2-raw-v1` test split
 - Method: deterministic sliding window perplexity
 - Reported perplexity: **8.8369**
+- NF4 quantized model (`checkpoints/tinyllama_gptq_nf4`):
+- Dataset: `wikitext-2-raw-v1` test split
+- Method: deterministic sliding window perplexity
 
 ## Requirements
 
@@ -115,4 +147,3 @@ Current `requirements.txt`:
 - `huggingface_hub`
 - `datasets`
 - `tqdm`
-
