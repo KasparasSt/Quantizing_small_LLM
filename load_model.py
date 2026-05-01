@@ -6,6 +6,7 @@ import transformers
 
 MODEL_ID = os.getenv("MODEL_ID", "TinyLlama/TinyLlama-1.1B-Chat-v1.0")
 HF_TOKEN = os.getenv("HF_TOKEN")
+SAVE_DIR = os.getenv("SAVE_DIR", "checkpoints/tinyllama_mod_v1")
 
 if torch.cuda.is_available():
     # Prefer bf16 on supported GPUs; otherwise use fp16 on CUDA.
@@ -21,11 +22,17 @@ if MODEL_ID.startswith("meta-llama/") and not HF_TOKEN:
         "Set HF_TOKEN in your environment if loading fails with 401/403."
     )
 
+model_source = SAVE_DIR if os.path.isdir(SAVE_DIR) else MODEL_ID
+if model_source == SAVE_DIR:
+    print(f"Loading local weights from: {SAVE_DIR}")
+else:
+    print(f"Loading model from Hugging Face: {MODEL_ID}")
+
 pipe = transformers.pipeline(
     "text-generation",
-    model=MODEL_ID,
+    model=model_source,
     token=HF_TOKEN,
-    model_kwargs={"torch_dtype": dtype},
+    model_kwargs={"dtype": dtype},
     device_map=device_map,
 )
 
@@ -49,3 +56,8 @@ outputs = pipe(
 )
 
 print(outputs[0]["generated_text"][-1]["content"])
+
+os.makedirs(SAVE_DIR, exist_ok=True)
+pipe.model.save_pretrained(SAVE_DIR, safe_serialization=True)
+pipe.tokenizer.save_pretrained(SAVE_DIR)
+print(f"Saved model + tokenizer to: {SAVE_DIR}")
