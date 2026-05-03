@@ -8,7 +8,7 @@ from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
-DEFAULT_MODEL = os.getenv("SAVE_DIR", "checkpoints/tinyllama_mod_v1")
+DEFAULT_MODEL = os.getenv("SAVE_DIR", "checkpoints/mistral_7b_instruct_v03")
 DEFAULT_DATASET = "wikitext"
 DEFAULT_CONFIG = "wikitext-2-raw-v1"
 DEFAULT_SPLIT = "test"
@@ -77,11 +77,11 @@ def main():
     parser.add_argument("--dataset-config", default=DEFAULT_CONFIG, help="HF dataset config")
     parser.add_argument("--split", default=DEFAULT_SPLIT, help="Dataset split")
     parser.add_argument("--text-field", default="text", help="Text field name in dataset")
-    parser.add_argument("--stride", type=int, default=512, help="Sliding window stride")
+    parser.add_argument("--stride", type=int, default=1024, help="Sliding window stride")
     parser.add_argument(
         "--eval-max-length",
         type=int,
-        default=512,
+        default=2048,
         help="Evaluation context window (<= model max). Lower this to reduce VRAM usage.",
     )
     parser.add_argument(

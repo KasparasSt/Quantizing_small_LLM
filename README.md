@@ -1,145 +1,86 @@
 # Quantizing_small_LLM
 
-Small local project for loading a small LLM checkpoint, chatting with it, and evaluating perplexity.
+Local project for loading a Mistral checkpoint, running interactive chat, inspecting layers, and measuring perplexity before/after quantization.
 
-## Current status
+## Current setup
 
-- Local device constraints (GTX 1650 4GB VRAM) made full GPTQ runs unbearably  slow.
-- GPTQ quantization was moved to Kaggle on `T4` GPU.
-- Quantization format: `NF4` (`QUANT_LIST_ID=4` in the GPTQ script/notebook).
-- Quantized checkpoint path: `checkpoints/tinyllama_gptq_nf4`.
-- Kaggle GPTQ run parameters:
-  - `MAX_BLOCKS = None`
-  - `DATASET = wikitext`
-  - `DATASET_CONFIG = wikitext-2-raw-v1`
-  - `CALIB_SPLIT = train`
-  - `CALIB_MAX_ROWS = 2000`
-  - `BLOCK_SIZE = 256`
-  - `BATCH_SIZE = 16`
-  - `SEED = 555`
-  - Scale search points: `10`
-- Quantized layers per decoder block:
-  - `self_attn.q_proj`
-  - `self_attn.k_proj`
-  - `self_attn.v_proj`
-  - `self_attn.o_proj`
-  - `mlp.gate_proj`
-  - `mlp.up_proj`
-  - `mlp.down_proj`
-- Post-quantization perplexity (WikiText-2 test, same sliding-window settings): **9.4680**
-- For reference, unquantized PPL was: **8.8369**
+- Runtime: Linux VM with Python virtual environment
+- GPU: NVIDIA RTX 3090 (`24GB` VRAM)
+- Model family: Mistral 7B
+- Default model id: `mistralai/Mistral-7B-Instruct-v0.3`
+- Default local checkpoint: `checkpoints/mistral_7b_instruct_v03`
 
-## Current model
+## Environment
 
-- Model id: `TinyLlama/TinyLlama-1.1B-Chat-v1.0`
-- Local checkpoint dir: `checkpoints/tinyllama_mod_v1`
-- Parameters: `1,100,048,384` (~1.10B)
-- Architecture: `LlamaForCausalLM`
-- Layers: `22`
-- Hidden size: `2048`
-- Attention heads: `32`
-- KV heads: `4`
-- Intermediate size: `5632`
-- Vocab size: `32000`
-- Max context length: `2048` tokens
+Activate your virtual environment and install dependencies:
 
-
-## Device used
-
-- Laptop: `Lenovo IdeaPad 5 Pro 16ACH6`
-- CPU: `AMD Ryzen 7 5800H`
-- RAM: `16GB DDR4 3200`
-- GPU used in this project: `NVIDIA GeForce GTX 1650 (4GB VRAM)`
-- Cloud device used for GPTQ: `Kaggle NVIDIA T4`
-
-Runtime implications for this setup:
-
-- `1.1B` model runs locally.
-- Larger models (for example `8B`) require heavy quantization/offloading and are typically slow.
-
-
-## Environment setup
-
-```powershell
-cd C:\Users\kaspa\projects\Quantizing_small_LLM
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
+```bash
+source /venv/main/bin/activate
 pip install -r requirements.txt
 ```
 
-Optional (token for gated models / API limits):
+Optional token for gated/private models:
 
-```powershell
-setx HF_TOKEN "hf_your_token"
+```bash
+export HF_TOKEN="hf_your_token"
 ```
 
-Open a new terminal after `setx`.
-
-## Files
+## Scripts
 
 - `load_model.py`
-  - Loads model (local checkpoint if it exists, otherwise from Hugging Face).
-  - Runs one sample generation.
+  - Loads from local `SAVE_DIR` if present, otherwise downloads from Hugging Face.
+  - Current defaults:
+    - `MODEL_ID=mistralai/Mistral-7B-Instruct-v0.3`
+    - `SAVE_DIR=checkpoints/mistral_7b_instruct_v03`
   - Saves model + tokenizer to `SAVE_DIR`.
+
 - `chat_local.py`
-  - Loads local checkpoint and runs interactive chat loop.
+  - Runs interactive chat with local checkpoint from `SAVE_DIR`.
+  - Current generation default: `max_new_tokens=512`.
+
+- `inspect_layers.py`
+  - Prints per-layer parameter breakdown for the loaded model.
+
 - `perplexity_sliding.py`
-  - Loads dataset and computes perplexity with deterministic sliding window.
+  - Deterministic sliding-window perplexity evaluation on Hugging Face datasets.
+  - Current defaults:
+    - `dataset=wikitext`
+    - `dataset-config=wikitext-2-raw-v1`
+    - `split=test`
+    - `stride=1024`
+    - `eval-max-length=2048`
+    - `max-samples=1000`
+    - `device=auto`
 
-## Save and reuse weights
+## Typical workflow
 
-Run once to download and save local checkpoint:
+1. Download/save checkpoint:
 
-```powershell
-python .\load_model.py
+```bash
+python load_model.py
 ```
 
-Override save/load location if needed:
+2. Chat locally:
 
-```powershell
-$env:SAVE_DIR="checkpoints\my_v2"
-python .\load_model.py
+```bash
+python chat_local.py
 ```
 
-## Chat with local checkpoint
+3. Measure baseline perplexity (pre-quantization):
 
-```powershell
-python .\chat_local.py
+```bash
+python perplexity_sliding.py --model checkpoints/mistral_7b_instruct_v03 --device cuda
 ```
 
-## Perplexity evaluation (deterministic sliding window)
+## Baseline result (before quantization)
 
-Default dataset config in script:
-
-- Dataset: `wikitext`
-- Config: `wikitext-2-raw-v1`
-- Split: `test`
-
-Recommended command:
-
-```powershell
-python .\perplexity_sliding.py --model checkpoints/tinyllama_mod_v1 --dataset wikitext --dataset-config wikitext-2-raw-v1 --split test --stride 256 --eval-max-length 512 --max-samples 1000 --device cpu
-```
-
-Notes:
-
-- `--device cpu` is safer on 4GB VRAM GPUs for perplexity evaluation.
-- `--device cuda` may run out of memory depending on `stride` and `eval-max-length`.
-
-## Current reference result
-
-- Baseline model (`checkpoints/tinyllama_mod_v1`):
-- Dataset: `wikitext-2-raw-v1` test split
-- Method: deterministic sliding window perplexity
-- Reported perplexity: **8.8369**
-- NF4 quantized model (`checkpoints/tinyllama_gptq_nf4`):
-- Dataset: `wikitext-2-raw-v1` test split
-- Method: deterministic sliding window perplexity
+- Model: `checkpoints/mistral_7b_instruct_v03`
+- Dataset: `wikitext/wikitext-2-raw-v1` (`test` split)
+- Method: deterministic sliding-window perplexity
+- Settings: `stride=1024`, `eval-max-length=2048`, `max-samples=1000`
+- Baseline PPL: **5.2349**
 
 ## Requirements
-
-Current `requirements.txt`:
 
 - `torch`
 - `transformers`

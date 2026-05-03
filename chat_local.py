@@ -4,11 +4,11 @@ import torch
 import transformers
 
 
-SAVE_DIR = os.getenv("SAVE_DIR", "checkpoints/tinyllama_mod_v1")
+SAVE_DIR = os.getenv("SAVE_DIR", "checkpoints/mistral_7b_instruct_v03")
 HF_TOKEN = os.getenv("HF_TOKEN")
 SYSTEM_PROMPT = os.getenv(
     "SYSTEM_PROMPT",
-    "You are a helpful assistant. Keep answers concise and practical.",
+    "You are an animal expert that knows everything about animals. You are helpful, creative, clever, and very friendly.",
 )
 
 
@@ -61,7 +61,7 @@ def main():
 
         outputs = pipe(
             messages,
-            max_new_tokens=128,
+            max_new_tokens=512,
             eos_token_id=terminators,
             do_sample=True,
             temperature=0.7,

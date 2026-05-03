@@ -4,10 +4,9 @@ import torch
 import transformers
 
 
-MODEL_ID = os.getenv("MODEL_ID", "TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+MODEL_ID = os.getenv("MODEL_ID", "mistralai/Mistral-7B-Instruct-v0.3")
 HF_TOKEN = os.getenv("HF_TOKEN")
-SAVE_DIR = os.getenv("SAVE_DIR", "checkpoints/tinyllama_mod_v1")
-
+SAVE_DIR = os.getenv("SAVE_DIR", "checkpoints/mistral_7b_instruct_v03")
 if torch.cuda.is_available():
     # Prefer bf16 on supported GPUs; otherwise use fp16 on CUDA.
     dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
@@ -16,10 +15,10 @@ else:
     dtype = torch.float32
     device_map = "cpu"
 
-if MODEL_ID.startswith("meta-llama/") and not HF_TOKEN:
+if not HF_TOKEN:
     print(
-        "Note: Meta Llama models usually require Hugging Face access + token. "
-        "Set HF_TOKEN in your environment if loading fails with 401/403."
+        "Note: Set HF_TOKEN in your environment if loading fails with 401/403 "
+        "or if the model requires gated access."
     )
 
 model_source = SAVE_DIR if os.path.isdir(SAVE_DIR) else MODEL_ID
