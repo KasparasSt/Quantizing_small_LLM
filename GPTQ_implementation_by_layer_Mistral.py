@@ -44,11 +44,9 @@ def get_activations(model, x_tokens, target_layer):
         activations.append(input[0].detach().cpu())
 
     handle = target_layer.register_forward_hook(hook)
-    print("Capturing activations (forward pass)...")
-    with tqdm(total=1, desc="get_activations", leave=False) as pbar:
-        with torch.no_grad():
-            model(x_tokens)
-        pbar.update(1)
+    # print("Capturing activations (forward pass)...")
+    with torch.no_grad():
+        model(x_tokens)
     handle.remove()
 
     return torch.cat(activations, dim=0)
@@ -64,16 +62,19 @@ def get_layer_weights(target_layer):
 
 def get_target_layer(model, block_index, layer_name):
     """
-    Returns one target linear layer from one TinyLlama decoder block.
+    Returns one target linear layer from one Mistral decoder block.
     layer_name must be one of:
-    - "self_attn.q_proj"
-    - "self_attn.k_proj"
-    - "self_attn.v_proj"
-    - "self_attn.o_proj"
-    - "mlp.gate_proj"
-    - "mlp.up_proj"
-    - "mlp.down_proj"
+    - "self_attn.q_proj" or "self_attn.q_proj.weight"
+    - "self_attn.k_proj" or "self_attn.k_proj.weight"
+    - "self_attn.v_proj" or "self_attn.v_proj.weight"
+    - "self_attn.o_proj" or "self_attn.o_proj.weight"
+    - "mlp.gate_proj" or "mlp.gate_proj.weight"
+    - "mlp.up_proj" or "mlp.up_proj.weight"
+    - "mlp.down_proj" or "mlp.down_proj.weight"
     """
+    if layer_name.endswith(".weight"):
+        layer_name = layer_name[:-7]
+
     block = model.model.layers[block_index]
     if layer_name == "self_attn.q_proj":
         return block.self_attn.q_proj
@@ -127,9 +128,9 @@ def quantize_with_hessian_per_row(W, H_inv, scale_multiplier=1.0, which_list=4):
         raise ValueError("Select quant_list id in {1,2,3,4}.")
 
     quant_list_max = quant_list.abs().max()
-    print("Weight compensation running (int4)")
+    # print("Weight compensation running (int4)")
 
-    for i in tqdm(range(n_in), desc="Quant cols", leave=False):
+    for i in range(n_in):
         w_col = W_quant[:, i].clone()
 
         # One scale per output row.
@@ -157,10 +158,10 @@ def find_optimal_scale(W, H_inv, X_flat, Y_ref, which_list=4):
     best_scale = 1.0
     best_W_q = None
 
-    test_scales = np.linspace(0.7, 1.3, 25)
-    print(f"Scale Grid Search ({len(test_scales)} combinations)")
+    test_scales = np.linspace(0.7, 1.3, 10)
+    # print(f"Scale Grid Search ({len(test_scales)} combinations)")
 
-    for s_mult in tqdm(test_scales, desc="Scale search", leave=False):
+    for s_mult in test_scales:
         W_q_temp = quantize_with_hessian_per_row(
             W,
             H_inv,
@@ -172,40 +173,41 @@ def find_optimal_scale(W, H_inv, X_flat, Y_ref, which_list=4):
             Y_temp = X_flat @ W_q_temp.t()
             mse = torch.nn.functional.mse_loss(Y_temp, Y_ref).item()
 
-        print(f"S-Mult: {s_mult:.3f} | MSE: {mse:.6f}")
+        # print(f"S-Mult: {s_mult:.3f} | MSE: {mse:.6f}")
 
         if mse < best_mse:
             best_mse = mse
             best_scale = s_mult
             best_W_q = W_q_temp
 
-    print(f"Best Found -> S: {best_scale:.3f} (MSE: {best_mse:.6f})")
+    # print(f"Best Found -> S: {best_scale:.3f} (MSE: {best_mse:.6f})")
     return best_W_q, best_mse
 
 
 if __name__ == "__main__":
     # Model
     DEVICE = os.getenv("DEVICE", "cuda")  # cuda or cpu
-    MODEL_PATH = os.getenv("MODEL_PATH", "checkpoints/tinyllama_mod_v1")
-    OUTPUT_PATH = os.getenv("OUTPUT_PATH", "checkpoints/tinyllama_mod_v1_gptq_nf4")
+    MODEL_PATH = os.getenv("MODEL_PATH", "checkpoints/mistral_7b_instruct_v03")
+    OUTPUT_PATH = os.getenv("OUTPUT_PATH", "checkpoints/mistral_7b_instruct_v03_gptq_nf4")
     QUANT_LIST_ID = int(os.getenv("QUANT_LIST_ID", "4"))  # 1,2,3,4 from quantize_with_hessian_per_row
     LAYER_TYPES = (
-        "self_attn.q_proj",
-        "self_attn.k_proj",
-        "self_attn.v_proj",
-        "self_attn.o_proj",
-        "mlp.gate_proj",
-        "mlp.up_proj",
-        "mlp.down_proj",
+        "self_attn.q_proj.weight",
+        "self_attn.k_proj.weight",
+        "self_attn.v_proj.weight",
+        "self_attn.o_proj.weight",
+        "mlp.gate_proj.weight",
+        "mlp.up_proj.weight",
+        "mlp.down_proj.weight",
     )
+    # Kept untouched on purpose: model.embed_tokens, all layer norms, model.norm, lm_head.
 
     # Tokenization / calibration data
     DATASET = "wikitext"
     DATASET_CONFIG = "wikitext-2-raw-v1"
     CALIB_SPLIT = os.getenv("CALIB_SPLIT", "train")
-    CALIB_MAX_ROWS = int(os.getenv("CALIB_MAX_ROWS", "2000"))
-    BLOCK_SIZE = int(os.getenv("BLOCK_SIZE", "128"))
-    BATCH_SIZE = int(os.getenv("BATCH_SIZE", "8"))
+    CALIB_MAX_ROWS = int(os.getenv("CALIB_MAX_ROWS", "4000"))
+    BLOCK_SIZE = int(os.getenv("BLOCK_SIZE", "512"))
+    BATCH_SIZE = int(os.getenv("BATCH_SIZE", "16"))
     SEED = 555
 
     if DEVICE == "cuda":
@@ -243,28 +245,32 @@ if __name__ == "__main__":
     print(f"Batch shape: {tuple(x_tokens.shape)}")
     print(f"Calibration split: {CALIB_SPLIT} (max_rows={CALIB_MAX_ROWS})")
 
-    for block_index, layer_name in tqdm(target_layers, desc="Target layers"):
-        print(f"\n=== Quantizing block {block_index} / {layer_name} ===")
+    total_targets = len(target_layers)
+    layer_pbar = tqdm(target_layers, total=total_targets, desc="Quantizing layers", unit="layer")
+    for layer_idx, (block_index, layer_name) in enumerate(layer_pbar, start=1):
+        # print(f"\n=== [{layer_idx}/{total_targets}] Quantizing block {block_index} / {layer_name} ===")
+        layer_pbar.set_postfix_str(f"{block_index}:{layer_name}")
         target_layer = get_target_layer(model, block_index, layer_name)
 
         # Capture inputs for this specific layer.
         X_big = get_activations(model, x_tokens, target_layer=target_layer)
-        print(f"X big shape: {X_big.shape}")
+        # print(f"X big shape: {X_big.shape}")
 
         W_orig, b_orig = get_layer_weights(target_layer)
-        print(f"W_orig Shape: {W_orig.shape}")
+        # print(f"W_orig Shape: {W_orig.shape}")
         if b_orig is not None:
-            print(f"Original Bias Shape: {b_orig.shape}")
+            # print(f"Original Bias Shape: {b_orig.shape}")
+            pass
 
         x_dim = W_orig.shape[1]
-        # Run GPTQ math on CPU to avoid CUDA OOM on 4GB VRAM.
-        X_flat = X_big.view(-1, x_dim).float().cpu()
-        W_orig_cpu = W_orig.float().cpu()
-        print(f"X_flat size: {X_flat.shape}")
+        # Run GPTQ math on GPU.
+        X_flat = X_big.view(-1, x_dim).float().to(DEVICE)
+        W_orig_gpu = W_orig.float().to(DEVICE)
+        # print(f"X_flat size: {X_flat.shape}")
 
         with torch.no_grad():
-            Y_ref = X_flat @ W_orig_cpu.t()
-            print(f"Shape of Y_ref: {Y_ref.shape}")
+            Y_ref = X_flat @ W_orig_gpu.t()
+            # print(f"Shape of Y_ref: {Y_ref.shape}")
 
             # Hessian approximation.
             H = X_flat.t() @ X_flat
@@ -273,16 +279,16 @@ if __name__ == "__main__":
             H_inv = torch.inverse(H.float())
 
             best_W_q, best_mse = find_optimal_scale(
-                W_orig_cpu,
+                W_orig_gpu,
                 H_inv,
                 X_flat,
                 Y_ref,
                 which_list=QUANT_LIST_ID,
             )
 
-            print(f"Best mse: {best_mse}")
-            print(f"Weights shape: {best_W_q.shape}")
-            print(f"Weights unique sum: {best_W_q.unique().sum().item()}")
+            # print(f"Best mse: {best_mse}")
+            # print(f"Weights shape: {best_W_q.shape}")
+            # print(f"Weights unique sum: {best_W_q.unique().sum().item()}")
 
             # Replace only this targeted layer.
             target_layer.weight.data.copy_(
@@ -290,7 +296,7 @@ if __name__ == "__main__":
             )
 
         # Release layer-local tensors and clear CUDA cache between layers.
-        del X_big, X_flat, W_orig, W_orig_cpu, Y_ref, H, H_inv, best_W_q
+        del X_big, X_flat, W_orig, W_orig_gpu, Y_ref, H, H_inv, best_W_q
         if DEVICE == "cuda":
             torch.cuda.empty_cache()
 
