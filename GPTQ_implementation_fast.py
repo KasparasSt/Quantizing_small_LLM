@@ -227,8 +227,9 @@ if __name__ == "__main__":
     # Model
     DEVICE = os.getenv("DEVICE", "cuda")  # cuda or cpu
     MODEL_PATH = os.getenv("MODEL_PATH", "checkpoints/mistral_7b_instruct_v03")
-    OUTPUT_PATH = os.getenv("OUTPUT_PATH", "checkpoints/mistral_7b_instruct_v03_gptq_nf4")
-    QUANT_LIST_ID = int(os.getenv("QUANT_LIST_ID", "4"))  # 1,2,3,4 from quantize_with_hessian_per_row
+    OUTPUT_PATH = os.getenv("OUTPUT_PATH", "checkpoints/mistral_7b_instruct_v03_gptq_e1m2")
+    QUANT_LIST_ID = int(os.getenv("QUANT_LIST_ID", "3"))  # 1,2,3,4 from quantize_with_hessian_per_row
+    # fp4_e3m0=1, fp4_e2m1=2, fp4_e1m2=3, fp4_nf4=4
     LAYER_TYPES = (
         "self_attn.q_proj.weight",
         "self_attn.k_proj.weight",

@@ -94,15 +94,18 @@ python perplexity_sliding.py --model checkpoints/mistral_7b_instruct_v03 --devic
 
 ## Quantization Results
 
-- Dataset/eval settings for all rows: `wikitext/wikitext-2-raw-v1` (`test`), `stride=1024`, `eval-max-length=2048`, `max-samples=1000`
+- Dataset/eval settings for all rows: `wikitext/wikitext-2-raw-v1` (`test`), `stride=1024`, `eval-max-length=2048`, `max-samples=1000`.
+- On the current system quantization takes **2h 20min**
 - Baseline (unquantized): **5.2349**
 
-| Quant type | GPTQ-processed checkpoint PPL | Real int4 checkpoint PPL | Runtime (quantization) |
+| Quant type | GPTQ-processed checkpoint PPL | Real int4 checkpoint PPL | Quant type |
 | --- | ---: | ---: | --- |
-| `fp4_e3m0` (`QUANT_LIST_ID=1`) | - | - |  |
-| `fp4_e2m1` (`QUANT_LIST_ID=2`) | - | - |  |
-| `fp4_e1m2` (`QUANT_LIST_ID=3`) | - | - |  |
-| `fp4_nf4` (`QUANT_LIST_ID=4`) | **5.4196** | **5.4682** | ~2h20min |
+| `fp4_e3m0` (`QUANT_LIST_ID=1`) | **5.8210** | **5.9089** | fp4 |
+| `fp4_e2m1` (`QUANT_LIST_ID=2`) | **5.4486** | **5.5768** | fp4 |
+| `fp4_e1m2` (`QUANT_LIST_ID=3`) | **5.5810** | **5.7553** | fp4 |
+| `fp4_nf4` (`QUANT_LIST_ID=4`) | **5.4196** | **5.4682** | nf4 | 
+
+
 
 ## Requirements
 

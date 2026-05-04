@@ -11,18 +11,18 @@ def parse_args():
     )
     parser.add_argument(
         "--model",
-        default=os.getenv("MODEL_PATH", "checkpoints/mistral_7b_instruct_v03_gptq_nf4"),
+        default=os.getenv("MODEL_PATH", "checkpoints/mistral_7b_instruct_v03_gptq_e3m0"),
         help="Source model directory or HF model id.",
     )
     parser.add_argument(
         "--output",
-        default=os.getenv("OUTPUT_PATH", "checkpoints/mistral_7b_instruct_v03_bnb_int4"),
+        default=os.getenv("OUTPUT_PATH", "checkpoints/mistral_7b_instruct_v03_e3m0_int4"),
         help="Output directory for the int4 checkpoint.",
     )
     parser.add_argument(
         "--quant-type",
         choices=["nf4", "fp4"],
-        default=os.getenv("INT4_QUANT_TYPE", "nf4"),
+        default=os.getenv("INT4_QUANT_TYPE", "fp4"),
         help="4-bit quant type.",
     )
     parser.add_argument(

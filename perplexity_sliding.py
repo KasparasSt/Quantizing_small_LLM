@@ -8,7 +8,7 @@ from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
-DEFAULT_MODEL = os.getenv("SAVE_DIR", "checkpoints/mistral_7b_instruct_v03_bnb_int4")
+DEFAULT_MODEL = os.getenv("SAVE_DIR", "checkpoints/mistral_7b_instruct_v03_e3m0_int4")
 DEFAULT_DATASET = "wikitext"
 DEFAULT_CONFIG = "wikitext-2-raw-v1"
 DEFAULT_SPLIT = "test"
