@@ -56,6 +56,13 @@ export HF_TOKEN="hf_your_token"
   - Fast GPTQ-style layer quantization for Mistral (7 target matrices per block).
   - Current practical runtime on RTX 3090: about `2h20min` for one full run.
 
+- `M3_multi_layer_eval_mistral.py`
+  - Applies the M3 runtime approximation to a chosen set of Mistral transformer linear layers and evaluates the patched model without modifying the checkpoint.
+
+- `M3_single_layer_sensitivity_mistral.py`
+  - Applies M3 to exactly one transformer `nn.Linear` at a time across all decoder blocks.
+  - Writes a markdown report to `M3_single_layer_sensitivity_mistral_report.md` so layer sensitivity can be ranked by loss/PPL change.
+
 - `block_int4_probe.py`
   - Tests int4 pack/depack + dequantization on one block and reports reconstruction/output error.
 
@@ -116,3 +123,18 @@ python perplexity_sliding.py --model checkpoints/mistral_7b_instruct_v03 --devic
 - `datasets`
 - `tqdm`
 - `bitsandbytes`
+
+
+
+## Implemented M3 matrix multiplication approximation
+
+First each individual layer gridsarch was performed.
+
+After that when k is 8192, and if ppl is no more that 7.6 (baseline is 7.5117), tried to implement the simplifications fo all layers with k = 8192, but PPL is 2404 :D. The table: [M3_single_layer_sensitivity_mistral_report.md](M3_single_layer_sensitivity_mistral_report.md)
+
+```tet
+baseline  PPL 7.5117
+k = 16384 PPL 46.87
+k = 32768 PPL 10.467
+k = 65536 PPL 8.54
+```
