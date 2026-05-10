@@ -19,6 +19,19 @@ source /venv/main/bin/activate
 pip install -r requirements.txt
 ```
 
+## Optimizing GPTQ approach
+
+- Added `GPTQ_implementation_by_layer_optimized.py` as a copy of the original GPTQ-by-layer script.
+- First optimization step completed: activation capture is now done once per transformer block instead of once per target layer.
+- In simple terms, the optimized script runs one forward pass to collect inputs for all 7 target linear layers inside a block, then reuses those cached activations while quantizing the layers in that block.
+- Next optimization step completed: Hessian inversion now uses a Cholesky-based path instead of `torch.inverse(...)`, which keeps the same idea but is usually faster and more stable.
+- Next optimization step completed: TF32 is enabled on CUDA for the optimized script, so large matrix multiplications can use faster tensor-core math on the RTX 3090.
+- Next optimization step completed: the inner quantization loop now caches small helper tensors that were being rebuilt every column, which reduces repeated setup work without changing the 10-scale-search flow.
+- Phase 2 started: the optimized script now processes weight columns in configurable blocks (`BLOCK_COLS`, default `128`) instead of one long flat column loop, while keeping the same GPTQ-style per-column quantization logic inside each block.
+- Speed-focused next step completed: the optimized script still uses one scale per row, but now freezes that per-row scale vector for each column block instead of recomputing it for every single column.
+- Speed-focused next step completed: the optimized script now precomputes the scaled Hessian coefficients for each column block, so the hottest inner update loop does less repeated slicing and setup work.
+- Speed-focused next step completed: the optimized script now quantizes small column chunks together (`CHUNK_COLS`, default `16`) and applies one larger compensation update per chunk instead of mostly nudging future columns one-by-one.
+
 Optional token for gated/private models:
 
 ```bash
@@ -102,7 +115,8 @@ python perplexity_sliding.py --model checkpoints/mistral_7b_instruct_v03 --devic
 ## Quantization Results
 
 - Dataset/eval settings for all rows: `wikitext/wikitext-2-raw-v1` (`test`), `stride=1024`, `eval-max-length=2048`, `max-samples=1000`.
-- On the current system quantization takes **2h 20min**
+- On the current system the original GPTQ-style quantization takes **2h 20min**
+- On the current system the optimized GPTQ NF4 run takes (`CHUNK_COLS = 16`) **10 min**
 - Baseline (unquantized): **5.2349**
 
 | Quant type | GPTQ-processed checkpoint PPL | Real int4 checkpoint PPL | Quant type |
@@ -111,6 +125,9 @@ python perplexity_sliding.py --model checkpoints/mistral_7b_instruct_v03 --devic
 | `fp4_e2m1` (`QUANT_LIST_ID=2`) | **5.4486** | **5.5768** | fp4 |
 | `fp4_e1m2` (`QUANT_LIST_ID=3`) | **5.5810** | **5.7553** | fp4 |
 | `fp4_nf4` (`QUANT_LIST_ID=4`) | **5.4196** | **5.4682** | nf4 | 
+| optimized GPTQ NF4 | **5.4191** | - | nf4 |
+| bitsandbytes direct quantization | - | **5.4015** | fp4 |
+| bitsandbytes direct quantization | - | **5.3241** | nf4 |
 
 
 

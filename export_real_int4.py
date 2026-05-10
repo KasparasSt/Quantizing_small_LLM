@@ -11,12 +11,12 @@ def parse_args():
     )
     parser.add_argument(
         "--model",
-        default=os.getenv("MODEL_PATH", "checkpoints/mistral_7b_instruct_v03_gptq_e3m0"),
+        default=os.getenv("MODEL_PATH", "checkpoints/mistral_7b_instruct_v03"),
         help="Source model directory or HF model id.",
     )
     parser.add_argument(
         "--output",
-        default=os.getenv("OUTPUT_PATH", "checkpoints/mistral_7b_instruct_v03_e3m0_int4"),
+        default=os.getenv("OUTPUT_PATH", "checkpoints/mistral_7b_instruct_fp4_bitsandbytes"),
         help="Output directory for the int4 checkpoint.",
     )
     parser.add_argument(

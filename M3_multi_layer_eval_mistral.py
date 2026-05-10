@@ -219,7 +219,7 @@ TARGET_LAYER_PATHS = [
 # This keeps the script simple.
 # If later you want different k per layer, that can be added, but this version
 # keeps one global setting for easier interpretation.
-M3_K = 65536
+M3_K = 131072
 
 # Optional per-layer override for k.
 #
