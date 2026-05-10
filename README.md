@@ -31,6 +31,8 @@ pip install -r requirements.txt
 - Speed-focused next step completed: the optimized script still uses one scale per row, but now freezes that per-row scale vector for each column block instead of recomputing it for every single column.
 - Speed-focused next step completed: the optimized script now precomputes the scaled Hessian coefficients for each column block, so the hottest inner update loop does less repeated slicing and setup work.
 - Speed-focused next step completed: the optimized script now quantizes small column chunks together (`CHUNK_COLS`, default `16`) and applies one larger compensation update per chunk instead of mostly nudging future columns one-by-one.
+- Work is now continuing in `GPTQ_implementation_by_layer_optimized_V2.py`.
+- In V2, `act-order` was added: columns are sorted by Hessian-diagonal importance before GPTQ-style quantization, then restored to the original order before saving.
 
 Optional token for gated/private models:
 
