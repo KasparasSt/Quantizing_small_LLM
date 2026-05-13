@@ -151,7 +151,7 @@ First each individual layer gridsarch was performed.
 
 After that when k is 8192, and if ppl is no more that 7.6 (baseline is 7.5117), tried to implement the simplifications fo all layers with k = 8192, but PPL is 2404 :D. The table: [M3_single_layer_sensitivity_mistral_report.md](M3_single_layer_sensitivity_mistral_report.md). This results in approximation of 119 out of 224 layers. 
 
-```tet
+```text
 baseline  PPL 7.5117
 k = 16384 PPL 46.87
 k = 32768 PPL 10.467
@@ -290,3 +290,137 @@ TARGET_LAYER_PATHS = [
 For this investigated nf4 quantized model was taken. Same style gridsearch was applied, where we test M3 approximation with k = 256, 521, 1024, 2048, 4096, 8192. If we set the same acceptable PPL threshold of `0.0883` above the baseline, at `k = 8192` 104/224 layers satisfy the condition. Previously with an unquantized model and the same threshold 119 layers satisfied the threshold.
 
 The avergae loss difference of suitable layers for quantized model M3 is 0.00458, which is similar (even slightly better) than without quantization (0.00488).
+
+
+
+The layers satsifying the condition:
+```python
+TARGET_LAYER_PATHS = [
+    "model.layers.0.self_attn.q_proj",
+    "model.layers.0.self_attn.k_proj",
+    "model.layers.0.mlp.gate_proj",
+    "model.layers.0.mlp.up_proj",
+    "model.layers.1.self_attn.k_proj",
+    "model.layers.1.mlp.gate_proj",
+    "model.layers.1.mlp.up_proj",
+    "model.layers.2.self_attn.q_proj",
+    "model.layers.2.self_attn.k_proj",
+    "model.layers.2.mlp.gate_proj",
+    "model.layers.2.mlp.up_proj",
+    "model.layers.3.self_attn.q_proj",
+    "model.layers.3.self_attn.k_proj",
+    "model.layers.3.self_attn.o_proj",
+    "model.layers.4.self_attn.q_proj",
+    "model.layers.4.self_attn.k_proj",
+    "model.layers.4.self_attn.o_proj",
+    "model.layers.4.mlp.gate_proj",
+    "model.layers.5.self_attn.q_proj",
+    "model.layers.5.self_attn.k_proj",
+    "model.layers.5.self_attn.o_proj",
+    "model.layers.5.mlp.gate_proj",
+    "model.layers.6.self_attn.q_proj",
+    "model.layers.6.self_attn.k_proj",
+    "model.layers.6.self_attn.o_proj",
+    "model.layers.6.mlp.gate_proj",
+    "model.layers.7.self_attn.q_proj",
+    "model.layers.7.self_attn.k_proj",
+    "model.layers.7.mlp.gate_proj",
+    "model.layers.8.self_attn.q_proj",
+    "model.layers.8.self_attn.k_proj",
+    "model.layers.8.self_attn.o_proj",
+    "model.layers.9.self_attn.q_proj",
+    "model.layers.9.self_attn.k_proj",
+    "model.layers.9.mlp.gate_proj",
+    "model.layers.10.self_attn.q_proj",
+    "model.layers.10.self_attn.k_proj",
+    "model.layers.10.mlp.gate_proj",
+    "model.layers.11.self_attn.q_proj",
+    "model.layers.11.self_attn.k_proj",
+    "model.layers.11.mlp.gate_proj",
+    "model.layers.12.self_attn.q_proj",
+    "model.layers.12.self_attn.k_proj",
+    "model.layers.13.self_attn.q_proj",
+    "model.layers.13.self_attn.k_proj",
+    "model.layers.13.mlp.gate_proj",
+    "model.layers.14.self_attn.q_proj",
+    "model.layers.14.self_attn.k_proj",
+    "model.layers.14.mlp.up_proj",
+    "model.layers.15.self_attn.q_proj",
+    "model.layers.15.self_attn.k_proj",
+    "model.layers.15.mlp.gate_proj",
+    "model.layers.16.self_attn.q_proj",
+    "model.layers.16.self_attn.k_proj",
+    "model.layers.16.mlp.gate_proj",
+    "model.layers.17.self_attn.q_proj",
+    "model.layers.17.self_attn.k_proj",
+    "model.layers.17.self_attn.o_proj",
+    "model.layers.18.self_attn.q_proj",
+    "model.layers.18.self_attn.k_proj",
+    "model.layers.19.self_attn.q_proj",
+    "model.layers.19.self_attn.k_proj",
+    "model.layers.19.self_attn.o_proj",
+    "model.layers.20.self_attn.q_proj",
+    "model.layers.20.self_attn.k_proj",
+    "model.layers.21.self_attn.q_proj",
+    "model.layers.21.self_attn.k_proj",
+    "model.layers.21.self_attn.v_proj",
+    "model.layers.21.self_attn.o_proj",
+    "model.layers.22.self_attn.q_proj",
+    "model.layers.22.self_attn.k_proj",
+    "model.layers.22.self_attn.v_proj",
+    "model.layers.22.self_attn.o_proj",
+    "model.layers.23.self_attn.q_proj",
+    "model.layers.23.self_attn.k_proj",
+    "model.layers.23.self_attn.o_proj",
+    "model.layers.24.self_attn.q_proj",
+    "model.layers.24.self_attn.k_proj",
+    "model.layers.24.self_attn.o_proj",
+    "model.layers.25.self_attn.q_proj",
+    "model.layers.25.self_attn.k_proj",
+    "model.layers.25.self_attn.v_proj",
+    "model.layers.25.self_attn.o_proj",
+    "model.layers.26.self_attn.q_proj",
+    "model.layers.26.self_attn.k_proj",
+    "model.layers.26.self_attn.v_proj",
+    "model.layers.26.self_attn.o_proj",
+    "model.layers.27.self_attn.q_proj",
+    "model.layers.27.self_attn.k_proj",
+    "model.layers.27.self_attn.v_proj",
+    "model.layers.27.self_attn.o_proj",
+    "model.layers.28.self_attn.q_proj",
+    "model.layers.28.self_attn.k_proj",
+    "model.layers.28.self_attn.v_proj",
+    "model.layers.28.self_attn.o_proj",
+    "model.layers.29.self_attn.q_proj",
+    "model.layers.29.self_attn.k_proj",
+    "model.layers.29.self_attn.o_proj",
+    "model.layers.30.self_attn.q_proj",
+    "model.layers.30.self_attn.k_proj",
+    "model.layers.30.self_attn.o_proj",
+    "model.layers.31.self_attn.q_proj",
+    "model.layers.31.self_attn.k_proj",
+    "model.layers.31.self_attn.o_proj",
+
+]
+```
+
+Quantized 104 layers M3
+
+```text
+baseline  PPL 7.776
+k = 16384 PPL 
+k = 32768 PPL 
+k = 65536 PPL 8.581
+```
+
+
+Unquantized 104 layers M3
+
+```text
+baseline  PPL 7.5117
+k = 16384 PPL 
+k = 32768 PPL 
+k = 65536 PPL 8.0918
+```
+
+It is evident, that applying M3 to unquantized data, leads to lower PPL as expected. However, the difference is not large, implying M3 can be used on quantized models to further optimize them.

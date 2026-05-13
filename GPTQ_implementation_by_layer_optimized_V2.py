@@ -282,7 +282,7 @@ if __name__ == "__main__":
     # Model
     DEVICE = os.getenv("DEVICE", "cuda")  # cuda or cpu
     MODEL_PATH = os.getenv("MODEL_PATH", "checkpoints/mistral_7b_instruct_v03")
-    OUTPUT_PATH = os.getenv("OUTPUT_PATH", "checkpoints/mistral_7b_instruct_v03_gptq_nf4_optimized")
+    OUTPUT_PATH = os.getenv("OUTPUT_PATH", "checkpoints/mistral_7b_instruct_v03_gptq_nf4_optimized_CC__BC_128")
     QUANT_LIST_ID = int(os.getenv("QUANT_LIST_ID", "4"))  # 1,2,3,4 from quantize_with_hessian_per_row
     LAYER_TYPES = (
         "self_attn.q_proj.weight",
@@ -303,7 +303,7 @@ if __name__ == "__main__":
     BLOCK_SIZE = int(os.getenv("BLOCK_SIZE", "512"))
     BATCH_SIZE = int(os.getenv("BATCH_SIZE", "16"))
     BLOCK_COLS = int(os.getenv("BLOCK_COLS", "128"))
-    CHUNK_COLS = int(os.getenv("CHUNK_COLS", "16"))
+    CHUNK_COLS = int(os.getenv("CHUNK_COLS", "2"))
     ACT_ORDER = os.getenv("ACT_ORDER", "1") == "1"
     SEED = 555
 
