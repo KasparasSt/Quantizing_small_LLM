@@ -149,7 +149,7 @@ python perplexity_sliding.py --model checkpoints/mistral_7b_instruct_v03 --devic
 
 First each individual layer gridsarch was performed.
 
-After that when k is 8192, and if ppl is no more that 7.6 (baseline is 7.5117), tried to implement the simplifications fo all layers with k = 8192, but PPL is 2404 :D. The table: [M3_single_layer_sensitivity_mistral_report.md](M3_single_layer_sensitivity_mistral_report.md). This results in approximation of 229 out of 224 layers. 
+After that when k is 8192, and if ppl is no more that 7.6 (baseline is 7.5117), tried to implement the simplifications fo all layers with k = 8192, but PPL is 2404 :D. The table: [M3_single_layer_sensitivity_mistral_report.md](M3_single_layer_sensitivity_mistral_report.md). This results in approximation of 119 out of 224 layers. 
 
 ```tet
 baseline  PPL 7.5117
@@ -283,3 +283,10 @@ TARGET_LAYER_PATHS = [
     "model.layers.31.self_attn.o_proj",
 ]
 ```
+
+
+## M3 matrix multiplication approximation on quantized model nf4
+
+For this investigated nf4 quantized model was taken. Same style gridsearch was applied, where we test M3 approximation with k = 256, 521, 1024, 2048, 4096, 8192. If we set the same acceptable PPL threshold of `0.0883` above the baseline, at `k = 8192` 104/224 layers satisfy the condition. Previously with an unquantized model and the same threshold 119 layers satisfied the threshold.
+
+The avergae loss difference of suitable layers for quantized model M3 is 0.00458, which is similar (even slightly better) than without quantization (0.00488).
