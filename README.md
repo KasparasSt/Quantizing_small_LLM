@@ -131,6 +131,23 @@ python perplexity_sliding.py --model checkpoints/mistral_7b_instruct_v03 --devic
 | bitsandbytes direct quantization | - | **5.4015** | fp4 |
 | bitsandbytes direct quantization | - | **5.3241** | nf4 |
 
+### `BLOCK_COLS` / `CHUNK_COLS` Investigation
+
+Here I investigated how `BLOCK_COLS` and `CHUNK_COLS` affect perplexity in the optimized GPTQ V2 path.
+
+| `CHUNK_COLS` | `BLOCK_COLS=64` | `BLOCK_COLS=128` | `BLOCK_COLS=256` | `BLOCK_COLS=512` |
+| ---: | ---: | ---: | ---: | ---: |
+| `1`   | - | **5.3926** | - | - |
+| `2`   | - | **5.3872** | - | - |
+| `4`   | - | **5.4021** | - | - |
+| `8`   | - | **5.3985** | - | - |
+| `16`  | **5.4075** | **5.4060** | **5.4046** | **5.4106** |
+| `32`  | - | **5.4025** | - | - |
+| `64`  | **5.4060** | **5.4104** | - | - |
+| `128` | `NA` | **5.4180** | **5.4081** | - |
+| `256` | `NA` | `NA` | **5.4160** | - |
+| `512` | `NA` | `NA` | `NA` | **5.4054** |
+
 
 
 ## Requirements
