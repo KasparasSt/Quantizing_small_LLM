@@ -13,7 +13,9 @@ This repository contains small local tooling for loading and running a TinyLlama
 - `README.md` — canonical overview, current model details, environment setup, and usage examples.
 - `load_model.py` — loads a model from `checkpoints/` if present, otherwise from Hugging Face; saves weights and tokenizer to `SAVE_DIR`; uses `MODEL_ID`, `SAVE_DIR`, and `HF_TOKEN` environment variables.
 - `chat_local.py` — runs interactive chat against a local checkpoint at `SAVE_DIR`; uses a system prompt from `SYSTEM_PROMPT` if set.
+- `inspect_zero_weights.py` — loads a local checkpoint and reports what fraction of stored parameter values are exactly zero, both per-parameter and in aggregate.
 - `perplexity_sliding.py` — computes sliding-window perplexity for a model on a Hugging Face dataset; defaults to `wikitext/wikitext-2-raw-v1` and a local TinyLlama checkpoint.
+- `SparseGPT_implementation_by_layer_optimized.py` — applies SparseGPT-style one-shot pruning to selected Mistral linear layers using calibration activations, and saves a pruned local checkpoint.
 - `M3_multi_layer_eval_mistral.py` — applies the M3 runtime approximation to selected Mistral transformer linear layers and evaluates the patched model without changing checkpoint weights.
 - `M3_single_layer_sensitivity_mistral.py` — sweeps one M3-patched transformer linear layer at a time across Mistral and writes a markdown sensitivity report.
 

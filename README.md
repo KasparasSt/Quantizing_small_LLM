@@ -56,6 +56,9 @@ export HF_TOKEN="hf_your_token"
 - `inspect_layers.py`
   - Prints per-layer parameter breakdown for the loaded model.
 
+- `inspect_zero_weights.py`
+  - Loads a local checkpoint and reports exact zero ratios per parameter, plus overall and grouped zero percentages.
+
 - `perplexity_sliding.py`
   - Deterministic sliding-window perplexity evaluation on Hugging Face datasets.
   - Current defaults:
@@ -70,6 +73,11 @@ export HF_TOKEN="hf_your_token"
 - `GPTQ_implementation_fast.py`
   - Fast GPTQ-style layer quantization for Mistral (7 target matrices per block).
   - Current practical runtime on RTX 3090: about `2h20min` for one full run.
+
+- `SparseGPT_implementation_by_layer_optimized.py`
+  - SparseGPT-style one-shot pruning for Mistral, built from the same optimized per-block calibration capture used by the local GPTQ path.
+  - Supports unstructured pruning via `SPARSITY` and semi-structured pruning via `PRUNEN` / `PRUNEM`.
+  - Saves a pruned Hugging Face checkpoint to `OUTPUT_PATH`.
 
 - `M3_multi_layer_eval_mistral.py`
   - Applies the M3 runtime approximation to a chosen set of Mistral transformer linear layers and evaluates the patched model without modifying the checkpoint.
@@ -104,6 +112,26 @@ python chat_local.py
 
 ```bash
 python perplexity_sliding.py --model checkpoints/mistral_7b_instruct_v03 --device cuda
+```
+
+4. Run SparseGPT-style pruning:
+
+```bash
+python SparseGPT_implementation_by_layer_optimized.py
+```
+
+Example 50% unstructured pruning:
+
+```bash
+SPARSITY=0.5 OUTPUT_PATH=checkpoints/mistral_7b_instruct_v03_sparsegpt \
+python SparseGPT_implementation_by_layer_optimized.py
+```
+
+Example 2:4 semi-structured pruning:
+
+```bash
+PRUNEN=2 PRUNEM=4 OUTPUT_PATH=checkpoints/mistral_7b_instruct_v03_sparsegpt_2_4 \
+python SparseGPT_implementation_by_layer_optimized.py
 ```
 
 ## Baseline result (before quantization)
