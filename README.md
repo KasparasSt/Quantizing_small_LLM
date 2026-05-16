@@ -489,7 +489,7 @@ k = 32768 PPL 10.299365
 k = 65536 PPL 8.743091
 ```
 
-Same layers for unquantized:
+Same layers for non-sparsed:
 
 ```text
 baseline  PPL 7.511729
