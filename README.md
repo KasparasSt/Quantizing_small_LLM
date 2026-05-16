@@ -469,3 +469,31 @@ k = 65536 PPL 8.0918
 ```
 
 It is evident, that applying M3 to unquantized data, leads to lower PPL as expected. However, the difference is not large, implying M3 can be used on quantized models to further optimize them.
+
+## SparseGPT and M3
+
+Here I ivestigated if M3 approximation behaves better or sparse matrices.
+
+For sparsity of 0.5, baseline PPL was 9.04, while baseline + 0.0883 thresold was surpased only by 81/224 layers @ k = 8192.
+For sparsity of 0.3, baseline PPl was 7.70, while baseline + 0.0833 thresold was surpased  by 113/224 layers @ k = 8192
+For sparsity of 0.5, baseline PPL was 312.539, while baseline + 0.0883 thresold was surpased only by 19/224 layers @ k = 8192.
+
+
+
+Sparsity of 0.3 with 113 suitable layers M3 approximation:
+
+```text
+baseline  PPL 7.6952
+k = 16384 PPL 24.454779
+k = 32768 PPL 10.299365
+k = 65536 PPL 8.743091
+```
+
+Same layers for unquantized:
+
+```text
+baseline  PPL 7.511729
+k = 16384 PPL 20.463770
+k = 32768 PPL 9.828816
+k = 65536 PPL 8.451315
+```

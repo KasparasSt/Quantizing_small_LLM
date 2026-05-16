@@ -4,7 +4,7 @@ import torch
 from transformers import AutoModelForCausalLM
 
 
-MODEL_PATH = os.getenv("SAVE_DIR", "checkpoints/mistral_7b_instruct_v03_sparsegpt")
+MODEL_PATH = os.getenv("SAVE_DIR", "checkpoints/mistral_7b_instruct_v03_sparsegpt_90")
 
 
 def human_millions(n: int) -> str:

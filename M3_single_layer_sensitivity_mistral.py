@@ -33,7 +33,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 # User-editable settings
 # -----------------------------------------------------------------------------
 
-MODEL_PATH = os.getenv("MODEL_PATH", "checkpoints/mistral_7b_instruct_v03_sparsegpt")
+MODEL_PATH = os.getenv("MODEL_PATH", "checkpoints/mistral_7b_instruct_v03_sparsegpt_90")
 
 DATASET = os.getenv("DATASET", "wikitext")
 DATASET_CONFIG = os.getenv("DATASET_CONFIG", "wikitext-2-raw-v1")
@@ -55,7 +55,8 @@ DTYPE = os.getenv(
 # Grid-search values for one-layer-at-a-time M3 evaluation.
 M3_K_VALUES = [
     int(part.strip())
-    for part in os.getenv("M3_K_VALUES", "256,512,1024,2048,4096,8192").split(",")
+    #for part in os.getenv("M3_K_VALUES", "256,512,1024,2048,4096,8192").split(",")
+    for part in os.getenv("M3_K_VALUES", "8192").split(",")
     if part.strip()
 ]
 
@@ -65,7 +66,7 @@ M3_TOKEN_CHUNK_SIZE = int(os.getenv("M3_TOKEN_CHUNK_SIZE", "128"))
 
 REPORT_MD_PATH = os.getenv(
     "REPORT_MD_PATH",
-    "M3_single_layer_sensitivity_mistral_report_sparsegpt50.md",
+    "M3_single_layer_sensitivity_mistral_report_sparsegpt90.md",
 )
 
 

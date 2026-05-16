@@ -287,7 +287,7 @@ def compute_layer_sparsity(W):
 if __name__ == "__main__":
     DEVICE = os.getenv("DEVICE", "cuda")  # cuda or cpu
     MODEL_PATH = os.getenv("MODEL_PATH", "checkpoints/mistral_7b_instruct_v03")
-    OUTPUT_PATH = os.getenv("OUTPUT_PATH", "checkpoints/mistral_7b_instruct_v03_sparsegpt")
+    OUTPUT_PATH = os.getenv("OUTPUT_PATH", "checkpoints/mistral_7b_instruct_v03_sparsegpt_90")
     LAYER_TYPES = (
         "self_attn.q_proj.weight",
         "self_attn.k_proj.weight",
@@ -306,7 +306,7 @@ if __name__ == "__main__":
     BLOCK_SIZE = int(os.getenv("BLOCK_SIZE", "512"))
     BATCH_SIZE = int(os.getenv("BATCH_SIZE", "16"))
     BLOCK_COLS = int(os.getenv("BLOCK_COLS", "128"))
-    SPARSITY = float(os.getenv("SPARSITY", "0.5"))
+    SPARSITY = float(os.getenv("SPARSITY", "0.9"))
     PRUNEN = int(os.getenv("PRUNEN", "0"))
     PRUNEM = int(os.getenv("PRUNEM", "0"))
     PERCDAMP = float(os.getenv("PERCDAMP", "0.01"))
